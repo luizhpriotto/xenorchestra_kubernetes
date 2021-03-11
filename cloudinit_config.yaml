@@ -1,0 +1,35 @@
+#cloud-config
+hostname: ${hostname}
+ssh_authorized_keys:
+  - ${ssh_key}
+resize_rootfs: true
+package_update: true
+package_upgrade: true
+packages:
+  - htop
+users:
+  - default
+  - name: debian
+    gecos: Debian
+    lock_passwd: false
+    groups: sudo, users, admin
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+system_info:
+  default_user:
+    name: debian
+    lock_passwd: false
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+runcmd:
+  - sudo su -c "echo localhost ${hostname} >> /etc/hosts"
+  ##If you decided to use static IP, adjust the config above and remove the #.
+  #- sudo su -c 'echo -e "\nauto eth0 \niface eth0 inet static \n         address ${ip_config} \n         netmask 255.255.255.0 \n         network 10.50.1.0 \n         broadcast 10.50.1.255 \n         gateway 10.50.1.1" >  /etc/network/interfaces.d/50-cloud-init.cfg'
+  #- sudo su -c "systemctl restart networking"
+  #- sudo su -c "echo 'domain domain.local' > /etc/resolv.conf"
+  #- sudo su -c "echo 'search domain.local' >> /etc/resolv.conf"
+  #- sudo su -c "echo 'nameserver 8.8.8.8' >> /etc/resolv.conf"
+  #- sudo su -c "echo 'nameserver 8.8.4.4' >> /etc/resolv.conf"
+power_state:
+  timeout: 5
+  mode: reboot
+

@@ -1,0 +1,80 @@
+---
+- name: Install docker prereqs
+  apt:
+    update_cache: yes
+    name: "{{ item }}"
+  loop: "{{ docker_prereqs_packages }}"
+
+- name: Add GPG key
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Add docker repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+
+- name: Install docker
+  apt:
+    name: "{{ item }}"
+  loop: "{{ docker_packages }}"
+
+- name: Disable swap
+  command: swapoff -a
+
+- name: Disable swap
+  shell: sed -i 's/.*swap.*/#&/' /etc/fstab
+
+- name: Ensure they can see bridge traffic
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+  with_items:
+  - net.bridge.bridge-nf-call-iptables
+  - net.bridge.bridge-nf-call-ip6tables
+
+- name: adding existing user debian to group docker
+  user:
+    name: debian
+    group: docker
+    append: yes
+
+- name: Enable service docker
+  ansible.builtin.systemd:
+    name: docker
+    enabled: yes
+
+- name: Ensure modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - br_netfilter
+  - ip6_udp_tunnel
+  - ip_set
+  - ip_set_hash_ip
+  - ip_set_hash_net
+  - iptable_filter
+  - iptable_nat
+  - iptable_mangle
+  - iptable_raw
+  - nf_conntrack_netlink
+  - nf_conntrack
+  - nf_conntrack_ipv4
+  - nf_nat_masquerade_ipv4
+  - nfnetlink
+  - udp_tunnel
+  - veth
+  - vxlan
+  - x_tables
+  - xt_addrtype
+  - xt_conntrack
+  - xt_comment
+  - xt_mark
+  - xt_multiport
+  - xt_nat
+  - xt_recent
+  - t_set
+  - t_statistic
+  - t_tcpudp
